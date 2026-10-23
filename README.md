@@ -1,14 +1,3 @@
-> **Development update:** The standalone FCM IP target is 50 MHz (20 ns).
-> Speed optimization (2026-10-20), with the frozen numerical contract unchanged:
-> **74 -> 65 cycles per histogram bin** at K=7 (1,161,073 -> 1,023,896 cycles),
-> and the SoC FCM clock increased from 25 to 50 MHz. End-to-end execution at K=7
-> improved from **307 ms -> 20.5 ms**. SoC post-fit timing: FCM domain +1.955 ns
-> at 20 ns, TNS 0 on every clock. The standalone `02_FCM_IP` build also passes
-> with **+8.604 ns** (Fmax 87.75 MHz). No board bring-up has been performed.
-> Datapath profiles, timing experiments, SoC integration notes, and IP/DV
-> release history are maintained in the hardware documentation set outside
-> this repository. `01_Reference` arithmetic remains frozen.
-
 # FCM on DE10-Lite
 
 A hardware accelerator for the Fuzzy C-Means (FCM) algorithm to cluster 450×450 grayscale images. The project implements the algorithm from a Python reference model to standalone SystemVerilog RTL and integrates it into a complete system on the Intel MAX 10 FPGA (Terasic DE10-Lite), using external SDRAM and a JTAG image-upload interface.
