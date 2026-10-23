@@ -1,0 +1,162 @@
+{
+  "case": "demo_k03",
+  "profile": {
+    "name": "precision",
+    "center_frac": 12,
+    "member_frac": 16,
+    "norm_guard": 18,
+    "accumulation_policy": "multiply_before_shift",
+    "epsilon_num": 1,
+    "epsilon_den": 10,
+    "epsilon_raw": 410,
+    "widths": {
+      "pixel": 8,
+      "histogram_count": 18,
+      "k_selector": 3,
+      "iteration_counter": 8,
+      "center": 20,
+      "gray_q": 20,
+      "distance": 20,
+      "distance_square": 40,
+      "ratio": 17,
+      "ratio_sum": 19,
+      "membership": 17,
+      "membership_square": 17,
+      "membership_square_full": 33,
+      "count_square_product": 50,
+      "accumulator_den": 34,
+      "accumulator_num": 42,
+      "numerator_before_update": 54,
+      "ratio_div_numerator": 56,
+      "normalization_div_numerator": 35,
+      "normalization_recip": 19,
+      "normalization_product": 36,
+      "label": 3,
+      "delta": 20
+    },
+    "contract": "FCM_UNSIGNED_RATIO_NORM_V4",
+    "max_iter": 200,
+    "rounding": "floor for nonnegative fixed arithmetic; numerator count*U*U shifted once if multiply_before_shift",
+    "overflow": "forbidden/assert; no wrap in valid domain",
+    "duplicate_centers": "split Q1 among zero-distance centers, lower index gets remainder",
+    "residual_membership": "allocate missing LSBs to maximal ratio, lower-index tie",
+    "label_tie": "lower index",
+    "empty_accumulator": "reseed from max histogram_count*nearest_square, tie low gray; distinct for multiple dead"
+  },
+  "K": 3,
+  "host_packaging": {
+    "status": "PROPOSED_UNVERIFIED_BOARD_LAYOUT",
+    "format": "row-major 16-bit words; pixel 2i low byte, pixel 2i+1 high byte",
+    "crc32_u8_pixels": "373789FC"
+  },
+  "iterations": 4,
+  "converged": true,
+  "centers_real": [
+    156.0,
+    127.0,
+    175.0
+  ],
+  "active_bins": 3,
+  "mem_fields": {
+    "pixels_u8.mem": {
+      "width": 8,
+      "signed": false,
+      "count": 202500,
+      "layout": "linear"
+    },
+    "sdram_proposed_u16.mem": {
+      "width": 16,
+      "signed": false,
+      "count": 101250,
+      "layout": "linear"
+    },
+    "hist_counts_u18.mem": {
+      "width": 18,
+      "signed": false,
+      "count": 256,
+      "layout": "linear"
+    },
+    "initial_centers.mem": {
+      "width": 20,
+      "signed": false,
+      "count": 3,
+      "layout": "linear"
+    },
+    "golden_centers.mem": {
+      "width": 20,
+      "signed": false,
+      "count": 3,
+      "layout": "linear"
+    },
+    "golden_lut_u3.mem": {
+      "width": 3,
+      "signed": false,
+      "count": 256,
+      "layout": "linear"
+    },
+    "golden_converged_u1.mem": {
+      "width": 1,
+      "signed": false,
+      "count": 1,
+      "layout": "linear"
+    },
+    "golden_iteration_count_u8.mem": {
+      "width": 8,
+      "signed": false,
+      "count": 1,
+      "layout": "linear"
+    },
+    "trace_centers_in.mem": {
+      "width": 20,
+      "signed": false,
+      "count": 12,
+      "layout": "iteration_major_cluster_minor"
+    },
+    "trace_centers_out.mem": {
+      "width": 20,
+      "signed": false,
+      "count": 12,
+      "layout": "iteration_major_cluster_minor"
+    },
+    "trace_acc_num.mem": {
+      "width": 42,
+      "signed": false,
+      "count": 12,
+      "layout": "iteration_major_cluster_minor"
+    },
+    "trace_acc_den.mem": {
+      "width": 34,
+      "signed": false,
+      "count": 12,
+      "layout": "iteration_major_cluster_minor"
+    },
+    "trace_delta.mem": {
+      "width": 20,
+      "signed": false,
+      "count": 4,
+      "layout": "linear"
+    },
+    "trace_reseed_u1.mem": {
+      "width": 1,
+      "signed": false,
+      "count": 12,
+      "layout": "iteration_major_cluster_minor"
+    },
+    "trace_reseed_gray_u8.mem": {
+      "width": 8,
+      "signed": false,
+      "count": 12,
+      "layout": "iteration_major_cluster_minor"
+    }
+  },
+  "note": "No packing: one unsigned word per line. trace arrays are iteration-major, cluster-minor; deltas iteration-major.",
+  "contract": "FCM_UNSIGNED_RATIO_NORM_V4",
+  "phase": "bit_exact_algorithm; do not compare these against legacy Q16.16 bit patterns",
+  "scenario": {
+    "family": "sparse",
+    "seed": 1001,
+    "raster_order": "sorted_by_gray",
+    "reseed_events": 0,
+    "source": "01_Reference/4_tools/generate_stress_vectors.py"
+  }
+}

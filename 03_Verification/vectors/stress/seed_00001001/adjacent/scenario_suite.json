@@ -1,0 +1,49 @@
+{
+  "family": "adjacent",
+  "seed": 1001,
+  "profile": "precision",
+  "cases": [
+    {
+      "K": 2,
+      "active_bins": 3,
+      "iterations": 4,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 3,
+      "active_bins": 4,
+      "iterations": 4,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 4,
+      "active_bins": 5,
+      "iterations": 8,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 5,
+      "active_bins": 6,
+      "iterations": 8,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 6,
+      "active_bins": 7,
+      "iterations": 7,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 7,
+      "active_bins": 8,
+      "iterations": 8,
+      "converged": true,
+      "reseeds": 0
+    }
+  ]
+}

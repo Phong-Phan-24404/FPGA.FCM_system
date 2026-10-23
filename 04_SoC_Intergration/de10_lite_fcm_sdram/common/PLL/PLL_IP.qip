@@ -1,0 +1,10 @@
+# MAX 10 PLL used by the PLL_IP compatibility wrapper.
+# The vendor-generated VGA_Audio_PLL creates c0 = 50 MHz from inclk0 = 50 MHz
+# (clk0_divide_by = 1). It was 25 MHz until 2026-10-20, when the FCM core was
+# moved off the legacy Q16.16 design; see 06_Docs/soc/SOC_FCM_V4_INTEGRATION.md.
+set_global_assignment -name IP_TOOL_NAME "ALTPLL"
+set_global_assignment -name IP_TOOL_VERSION "16.0"
+set_global_assignment -name IP_GENERATED_DEVICE_FAMILY "{MAX 10}"
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "VGA_Audio_PLL.v"]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(qip_path) "PLL_IP.v"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "VGA_Audio_PLL_bb.v"]

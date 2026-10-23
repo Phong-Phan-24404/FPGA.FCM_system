@@ -1,0 +1,49 @@
+{
+  "family": "sparse",
+  "seed": 1001,
+  "profile": "precision",
+  "cases": [
+    {
+      "K": 2,
+      "active_bins": 11,
+      "iterations": 5,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 3,
+      "active_bins": 3,
+      "iterations": 4,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 4,
+      "active_bins": 9,
+      "iterations": 7,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 5,
+      "active_bins": 7,
+      "iterations": 7,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 6,
+      "active_bins": 7,
+      "iterations": 4,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 7,
+      "active_bins": 16,
+      "iterations": 6,
+      "converged": true,
+      "reseeds": 0
+    }
+  ]
+}

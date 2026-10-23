@@ -1,0 +1,54 @@
+{
+  "family": "deep_iter",
+  "profile": "precision",
+  "cases": [
+    {
+      "K": 2,
+      "active_bins": 8,
+      "iterations": 160,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 0
+    },
+    {
+      "K": 3,
+      "active_bins": 8,
+      "iterations": 113,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 0
+    },
+    {
+      "K": 4,
+      "active_bins": 8,
+      "iterations": 92,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 0
+    },
+    {
+      "K": 5,
+      "active_bins": 8,
+      "iterations": 78,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 0
+    },
+    {
+      "K": 6,
+      "active_bins": 8,
+      "iterations": 68,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 0
+    },
+    {
+      "K": 7,
+      "active_bins": 8,
+      "iterations": 39,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 0
+    }
+  ]
+}

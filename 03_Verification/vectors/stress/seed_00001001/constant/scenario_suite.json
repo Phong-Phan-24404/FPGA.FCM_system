@@ -1,0 +1,49 @@
+{
+  "family": "constant",
+  "seed": 1001,
+  "profile": "precision",
+  "cases": [
+    {
+      "K": 2,
+      "active_bins": 1,
+      "iterations": 2,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 3,
+      "active_bins": 1,
+      "iterations": 2,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 4,
+      "active_bins": 1,
+      "iterations": 2,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 5,
+      "active_bins": 1,
+      "iterations": 2,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 6,
+      "active_bins": 1,
+      "iterations": 2,
+      "converged": true,
+      "reseeds": 0
+    },
+    {
+      "K": 7,
+      "active_bins": 1,
+      "iterations": 2,
+      "converged": true,
+      "reseeds": 0
+    }
+  ]
+}

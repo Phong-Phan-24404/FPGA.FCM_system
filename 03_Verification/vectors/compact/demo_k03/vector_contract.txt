@@ -1,0 +1,22 @@
+FCM_UNSIGNED_RATIO_NORM_V4
+K 3
+ITERATIONS 14
+PROFILE compact
+CENTER_FRAC 6
+MEMBER_FRAC 12
+ACCUMULATION_POLICY post_square_shift
+MEM pixels_u8.mem 8 202500 0
+MEM sdram_proposed_u16.mem 16 101250 0
+MEM hist_counts_u18.mem 18 256 0
+MEM initial_centers.mem 14 3 0
+MEM golden_centers.mem 14 3 0
+MEM golden_lut_u3.mem 3 256 0
+MEM golden_converged_u1.mem 1 1 0
+MEM golden_iteration_count_u8.mem 8 1 0
+MEM trace_centers_in.mem 14 42 0
+MEM trace_centers_out.mem 14 42 0
+MEM trace_acc_num.mem 38 42 0
+MEM trace_acc_den.mem 30 42 0
+MEM trace_delta.mem 14 14 0
+MEM trace_reseed_u1.mem 1 42 0
+MEM trace_reseed_gray_u8.mem 8 42 0

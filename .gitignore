@@ -1,0 +1,122 @@
+/backup/
+**/__pycache__/
+*.pyc
+**/.pytest_cache/
+
+# --- Thư mục CỐ Ý không đưa vào repo ------------------------------------
+#
+# 06_Docs và 07_Scripts nằm ngoài phạm vi cây nguồn này theo chủ đích. Liệt kê
+# ở đây để một bản checkout có chúng trên đĩa không vô tình commit, và để
+# người đọc biết "thiếu" là có chủ ý chứ không phải mất file.
+#
+#   - 06_Docs/     : tài liệu đặc tả và bằng chứng đo đạc phần cứng.
+#   - 07_Scripts/  : toolchain PowerShell (Quartus / Questa / WSL Python) và
+#                    config tập trung *.psd1.
+#
+# Hệ quả: mọi lệnh build/lint/sim trong README đã được viết lại thành lệnh
+# gọi thẳng công cụ, không qua 07_Scripts.
+/06_Docs/
+/07_Scripts/
+
+# Invoke-Regression.ps1 là runner gộp hai tầng, nhưng nó gọi
+# 07_Scripts\questa\Invoke-Sim.ps1 và đọc 07_Scripts\config\*.psd1 — không có
+# 07_Scripts thì nó fail ngay dòng đầu. Giữ nó trong repo chỉ tạo ra một lối
+# vào gãy. Testlist và README của regression/ vẫn được theo dõi.
+/03_Verification/regression/scripts/Invoke-Regression.ps1
+
+# --- Sản phẩm biên dịch Quartus -----------------------------------------
+#
+# Để phạm vi toàn repo: hai project Quartus (02_FCM_IP/quartus và
+# 04_SoC_Intergration/de10_lite_fcm_sdram) sinh cùng một bộ artifact, và
+# Quartus là nguồn duy nhất của các đuôi này nên không có file nguồn nào bị
+# bắt nhầm. .qpf/.qsf vẫn được commit: đó là mô tả project, mở được bằng tay.
+**/db/
+**/incremental_db/
+**/greybox_tmp/
+**/quartus_runs/
+**/*.sof
+**/*.pof
+**/*.rpt
+**/*.summary
+**/*.smsg
+**/*.done
+**/*.htm
+**/*.jdi
+**/*.jditmp
+**/*.pin
+**/*.sld
+**/*.qws
+**/*.qdf
+**/*.bak
+**/tr_db.log
+
+# mem/ là nơi 05_Host_PC ghi ảnh lúc chạy, không phải nguồn. Ảnh cố định dùng
+# cho mô phỏng nằm ở 01_Reference/fixtures/ và 03_Verification/vectors/.
+/04_SoC_Intergration/**/mem/*.mem
+
+# Ad-hoc TimeQuest dumps and the one-off .tcl that produce them. These are
+# analysis scratch, not release material: each describes one fit of one
+# variant, and a stale copy in the tree contradicts the signed-off numbers.
+/02_FCM_IP/quartus/*.txt
+/02_FCM_IP/quartus/report_*.tcl
+
+# --- 03_Verification ----------------------------------------------------
+#
+# Báo cáo regression là artifact của MỘT lần chạy trên MỘT máy: thư mục
+# <timestamp>/ kèm summary.md và toàn bộ log. Commit chúng thì lịch sử git đầy
+# những lần chạy không ai đọc lại, và tệ hơn là một summary.md cũ nằm trong
+# tree sẽ mâu thuẫn với lần chạy hiện tại. Bằng chứng cho một thay đổi cụ thể
+# thì đính kèm vào pull request, không để lại trong cây nguồn.
+# README.md giải thích thư mục này nên vẫn phải theo dõi.
+#
+# Viết theo tên thư mục timestamp chứ KHÔNG dùng `*` cộng một luật phủ định
+# cho README.md: phủ định trong .gitignore có ngữ nghĩa khó lường (không thể
+# lấy lại một file nếu thư mục cha đã bị loại). Luật dưới đây nói đúng thứ cần
+# nói: "các thư mục của một lần chạy", vốn luôn bắt đầu bằng chữ số
+# (Get-Date -Format 'yyyyMMdd-HHmmss').
+/03_Verification/regression/reports/[0-9]*/
+
+# Rác của Questa khi chạy vsim BẰNG TAY.
+#
+# vsim thường được chạy với cwd là thư mục project Quartus (02_FCM_IP/quartus,
+# 04_SoC_Intergration/de10_lite_fcm_sdram) để đường dẫn vector tương đối hoạt
+# động — nên transcript/.wlf rơi xuống ĐÓ chứ không phải ở 03_Verification. Vì
+# vậy các luật dưới đây để phạm vi toàn repo: bó vào 03_Verification là bỏ sót
+# đúng chỗ rác thật sự rơi xuống.
+**/transcript
+**/transcript.[0-9]*
+**/*.wlf
+**/wlft*
+**/modelsim.ini
+**/vsim.dbg
+**/vish_stacktrace.vstf
+**/*.ucdb
+**/covhtmlreport/
+**/*.vcd
+**/*.fst
+
+# Sản phẩm của iverilog/vvp khi chạy tay (luồng chính dùng Questa, không dùng
+# iverilog — nhưng nó có sẵn trong WSL nên vẫn hay được gọi lúc debug).
+**/*.vvp
+**/a.out
+
+# Ảnh nguồn và bản đóng gói SDRAM của bộ corner + stress: 51.6 MB trên tổng
+# 70 MB của vectors/, và KHÔNG CÓ THỨ GÌ ĐỌC CHÚNG.
+#
+#   - phía SV: chỉ fcm_soc_case_sequence đọc pixels_u8.mem, và testbench mức
+#     SoC chạy trên precision (FCM_DEFAULT_VECTOR_DIR trong fcm_vector_pkg.sv);
+#   - phía Python: test_vectors.py glob '*/demo_k*' — một tầng, nên chỉ thấy
+#     compact + precision (nó assert đúng 12 case); validate_stress_vectors.py
+#     chỉ đọc hist/initial_centers/golden_*/trace_acc_*; check_reference_lock.py
+#     băm file model chứ không băm vector.
+#
+# Chúng vẫn được generate đồng loạt cho mọi case, chỉ là không ai dùng. Bỏ hai
+# loại này ra khỏi corner/ và stress/ đưa vectors/ từ 70 MB xuống 16.5 MB.
+#
+# BỎ LUẬT NÀY NGAY khi có test chạy mức SoC trên bộ corner hoặc stress — lúc
+# đó một bản clone mới sẽ thiếu đúng dữ liệu đầu vào mà test cần, và triệu
+# chứng sẽ là "fcm_read_mem trả -1" chứ không phải một lỗi nói rõ nguyên nhân.
+/03_Verification/vectors/corner/**/pixels_u8.mem
+/03_Verification/vectors/corner/**/sdram_proposed_u16.mem
+/03_Verification/vectors/stress/**/pixels_u8.mem
+/03_Verification/vectors/stress/**/sdram_proposed_u16.mem

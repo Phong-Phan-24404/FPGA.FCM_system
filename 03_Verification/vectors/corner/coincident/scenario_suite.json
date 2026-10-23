@@ -1,0 +1,54 @@
+{
+  "family": "coincident",
+  "profile": "precision",
+  "cases": [
+    {
+      "K": 2,
+      "active_bins": 2,
+      "iterations": 2,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 2
+    },
+    {
+      "K": 3,
+      "active_bins": 3,
+      "iterations": 12,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 2
+    },
+    {
+      "K": 4,
+      "active_bins": 4,
+      "iterations": 13,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 2
+    },
+    {
+      "K": 5,
+      "active_bins": 5,
+      "iterations": 12,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 2
+    },
+    {
+      "K": 6,
+      "active_bins": 6,
+      "iterations": 18,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 2
+    },
+    {
+      "K": 7,
+      "active_bins": 7,
+      "iterations": 18,
+      "converged": true,
+      "reseeds": 0,
+      "max_coincident_clusters": 2
+    }
+  ]
+}

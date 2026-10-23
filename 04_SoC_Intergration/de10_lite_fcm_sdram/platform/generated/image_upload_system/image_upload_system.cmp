@@ -1,0 +1,19 @@
+	component image_upload_system is
+		port (
+			clk_clk                     : in  std_logic                    := 'X'; -- clk
+			image_control_upload_start  : out std_logic;                           -- upload_start
+			image_control_upload_pixel  : out std_logic_vector(7 downto 0);        -- upload_pixel
+			image_control_upload_valid  : out std_logic;                           -- upload_valid
+			image_control_upload_ready  : in  std_logic                    := 'X'; -- upload_ready
+			image_control_image_loaded  : in  std_logic                    := 'X'; -- image_loaded
+			image_control_upload_busy   : in  std_logic                    := 'X'; -- upload_busy
+			image_control_upload_error  : in  std_logic                    := 'X'; -- upload_error
+			image_control_stream_start  : out std_logic;                           -- stream_start
+			image_control_stream_busy   : in  std_logic                    := 'X'; -- stream_busy
+			image_control_stream_done   : in  std_logic                    := 'X'; -- stream_done
+			image_control_stream_error  : in  std_logic                    := 'X'; -- stream_error
+			image_control_stream_parity : in  std_logic                    := 'X'; -- stream_parity
+			reset_reset_n               : in  std_logic                    := 'X'  -- reset_n
+		);
+	end component image_upload_system;
+

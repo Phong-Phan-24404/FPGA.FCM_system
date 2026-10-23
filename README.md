@@ -1,0 +1,192 @@
+> **Development update:** The standalone FCM IP target is 50 MHz (20 ns).
+> Speed optimization (2026-10-20), with the frozen numerical contract unchanged:
+> **74 -> 65 cycles per histogram bin** at K=7 (1,161,073 -> 1,023,896 cycles),
+> and the SoC FCM clock increased from 25 to 50 MHz. End-to-end execution at K=7
+> improved from **307 ms -> 20.5 ms**. SoC post-fit timing: FCM domain +1.955 ns
+> at 20 ns, TNS 0 on every clock. The standalone `02_FCM_IP` build also passes
+> with **+8.604 ns** (Fmax 87.75 MHz). No board bring-up has been performed.
+> Datapath profiles, timing experiments, SoC integration notes, and IP/DV
+> release history are maintained in the hardware documentation set outside
+> this repository. `01_Reference` arithmetic remains frozen.
+
+# FCM on DE10-Lite
+
+A hardware accelerator for the Fuzzy C-Means (FCM) algorithm to cluster 450×450 grayscale images. The project implements the algorithm from a Python reference model to standalone SystemVerilog RTL and integrates it into a complete system on the Intel MAX 10 FPGA (Terasic DE10-Lite), using external SDRAM and a JTAG image-upload interface.
+
+The project is organized into the following layers:
+- `01_Reference`: Python numerical reference model (source of truth for the algorithm and test vectors).
+- `02_FCM_IP`: FCM processing core (standalone RTL and SDC timing constraints).
+- `03_Verification`: Centralized verification environment (golden vectors, SVA, and UVM testbenches).
+- `04_SoC_Intergration`: DE10-Lite SoC integration (SDRAM controller, JTAG master, and board UI).
+- `05_Host_PC`: PC application for uploading images and comparing results.
+
+> **Repository scope.** The hardware specification documents (`06_Docs`) and
+> PowerShell automation toolchain (`07_Scripts`) are **intentionally excluded
+> from this source tree** and listed in `.gitignore`. The commands below
+> therefore invoke tools directly (`python`, `quartus_sh`, `vsim`) instead of
+> using wrapper scripts.
+
+## Workspace Structure
+
+| Directory | Purpose | Current Status |
+| --- | --- | --- |
+| [`01_Reference/`](01_Reference/) | Python algorithm model | Complete floating-point and bit-exact fixed-point models, vector-generation tools, and pytest tests |
+| [`02_FCM_IP/`](02_FCM_IP/) | FCM Core IP | Standalone SystemVerilog RTL, synthesized with SDC constraints for 50 MHz |
+| [`03_Verification/`](03_Verification/) | Centralized verification environment | K=2..7 vectors, SVA assertions, and IP-level and system-level UVM testbenches |
+| [`04_SoC_Intergration/`](04_SoC_Intergration/) | DE10-Lite SoC integration | Complete SDRAM path, JTAG Avalon interface, FCM pipeline, and board UI; FCM core runs at 50 MHz (post-fit +1.955 ns, TNS 0) |
+| [`05_Host_PC/`](05_Host_PC/) | Desktop application | Tkinter application for uploading images through System Console and comparing results against the reference model |
+
+## 01_Reference — Reference Model
+
+Numerical contract: **`FCM_UNSIGNED_RATIO_NORM_V4`** (unsigned fixed-point arithmetic with distance-ratio normalization).
+
+| Directory / File | Python Module | Description |
+| --- | --- | --- |
+| `1_golden_algorithm/` | `golden_algorithm` | Floating-point FCM (float64) for evaluating mathematical accuracy |
+| `2_bit_exact_algorithm/` | `bit_exact_algorithm` | Bit-exact fixed-point FCM that matches RTL calculations at the bit level |
+| `3_verification_resources/` | `verification` | Reads/writes `.mem` files, exports simulation traces, calculates metrics, and packs SDRAM data |
+| `4_tools/` | — | `generate_vectors.py` (generates golden vectors), `check_reference_lock.py` (checks SHA-256 hashes) |
+| `5_tests/` | — | Pytest tests for the algorithm and vector validation |
+| `fixtures/` | — | Standard sample image file `input_grayscale.mem` (450×450 grayscale) |
+
+The [`refpkg.py`](01_Reference/refpkg.py) module automatically maps the numbered directories into the `sys.modules` namespace.
+
+Two numerical configurations are defined in [`profiles.py`](01_Reference/2_bit_exact_algorithm/profiles.py):
+
+| Parameter | `compact` | `precision` (RTL Configuration) |
+| --- | --- | --- |
+| Center fraction ($F$) | 6 bits | 12 bits (Q8.12) |
+| Membership fraction ($M$) | 12 bits | 16 bits (Q0.16) |
+| Norm guard ($G$) | 16 bits | 18 bits |
+| Accumulation policy | `count · ((u²) >> M)` | `(count · u · u) >> M` |
+
+Run the reference tests:
+
+```powershell
+cd 01_Reference
+python -m pytest 5_tests -q
+```
+
+## 02_FCM_IP — FCM Core IP
+
+The RTL implements the V4 contract using the **`precision`** profile. It is a standalone design without dependencies on external vendor IP:
+
+```text
+02_FCM_IP/
+├── rtl/                 fcm_pkg, fcm_divider, fcm_member,
+│                        fcm_accum_update, fcm_core_engine,
+│                        fcm_label_lut, fcm_core
+├── constraints/         fcm_ip.sdc (50 MHz constraints)
+└── quartus/             Standalone Quartus project (FCM_IP.qpf/.qsf)
+```
+
+Run IP synthesis:
+
+```powershell
+# Run Analysis & Synthesis
+cd 02_FCM_IP\quartus
+quartus_map FCM_IP
+```
+
+## 03_Verification — Centralized Verification
+
+All design verification resources are organized in one place:
+
+```text
+03_Verification/
+├── vectors/             Golden vectors generated by 01_Reference/4_tools/generate_vectors.py
+│   ├── precision/       demo_k02 .. demo_k07 — main RTL verification profile
+│   └── compact/         demo_k02 .. demo_k07 — compact profile for comparison
+├── common/
+│   └── fcm_vector_pkg.sv    SystemVerilog package for reading vectors and traces
+├── agents/              Reusable components: interface, item, driver, monitor, agent + config
+│   ├── member_agent/        fcm_member (IP level)
+│   ├── core_agent/          fcm_core (IP level)
+│   └── stream_agent/        fcm_stream_pipeline (SoC level)
+├── env/{ip,soc}/        Scoreboard, coverage, perf, env + env config
+├── sequences/{ip,soc}/  Stimulus read from reference vectors
+├── tests/{ip,soc}/      Base tests and derived tests
+├── tb/{ip,soc}/         Testbench tops, directed harnesses, fixtures
+├── assertions/{ip,soc}/ SVA and bind modules
+├── packages/            fcm_member_uvm_pkg, fcm_core_uvm_pkg, fcm_soc_uvm_pkg
+├── regression/          Combined runner for both levels, testlists, reports
+└── docs/                Verification plan, UVM architecture, traceability, onboarding
+```
+
+Each UVM class is stored in a separate `.svh` file. Packages in `packages/` only serve as entry points and use `` `include `` in the correct declaration order. Start with [`03_Verification/docs/onboarding.md`](03_Verification/docs/onboarding.md).
+
+The UVM scoreboard compares results directly against the golden data in `vectors/precision/`.
+
+| Testbench | Design Under Test | Stimulus Source | Verification Goal |
+| --- | --- | --- | --- |
+| `tb_fcm_divider` | `fcm_divider` | Automatically generated in the TB | Check quotients and remainders across bit-width configurations |
+| `tb_fcm_member_uvm` | `fcm_member` | `demo_kNN/bin_traces/*.jsonl` | Check membership accuracy for each histogram bin |
+| `tb_fcm_core_uvm` | `fcm_core` | `demo_kNN/*.mem` | Check final cluster centers, iteration count, convergence flag, and label table |
+| `tb_fcm_stream_pipeline_uvm` | `fcm_stream_pipeline` | `demo_kNN/pixels_u8.mem` | Check pixel input stream, histogram accumulation, center initialization, and 8-bit cluster centers |
+| `tb_fcm_system` | Avalon slave + `sdram_image_path` + `fcm_de10lite_integration` | `demo_kNN/pixels_u8.mem` | Check the full image-frame path: Avalon upload, SDRAM packing, 50→25 MHz CDC, FCM, and board indicators |
+
+Regenerate the test vectors:
+
+```powershell
+cd 01_Reference
+python 4_tools/generate_vectors.py
+```
+
+*Coverage note:* The current vector set does not exercise the branch that splits `2^M` equally among multiple clusters with the same grayscale value (`_split_one` with $\ge 2$ indices), due to the distribution of natural images. The single matching-center branch is fully covered.
+
+## 04_SoC_Intergration — DE10-Lite System Integration
+
+The complete system is ready to be programmed onto the Terasic DE10-Lite board:
+
+```text
+de10_lite_fcm_sdram/
+├── DE10_LITE_FCM_SDRAM.{qpf,qsf,v,sdc}   SoC top level, pin assignments, and timing constraints
+├── rtl/
+│   ├── src/             Integration layer: SDRAM path, stream pipeline, board UI controller
+│   ├── sdram_control/   Terasic SDRAM controller
+│   └── qsys/            Avalon-MM component definitions (_hw.tcl)
+├── common/              PLL, FIFO, and LPM megafunctions
+├── platform/            Qsys JTAG Avalon master system (image_upload_system)
+├── host/                System Console scripts for uploading image data from PC
+└── mem/                 Temporary directory for runtime image uploads
+```
+
+Build and program the system:
+
+```powershell
+# Compile the complete design into a .sof bitstream
+cd 04_SoC_Intergration\de10_lite_fcm_sdram
+quartus_sh --flow compile DE10_LITE_FCM_SDRAM
+
+# Program the DE10-Lite board
+quartus_pgm -m jtag -o "p;output_files/DE10_LITE_FCM_SDRAM.sof"
+```
+
+*Testbench note:* `tb_fcm_system` checks the complete image-frame path but **does not simulate the JTAG PHY**. It starts at the Avalon slave driven by the Qsys JTAG bridge. SDRAM is modeled at the controller's client interface rather than at the memory-chip level. See [verification_audit.md](03_Verification/docs/verification_audit.md) §5.
+
+## 05_Host_PC — Image Upload and Comparison Tool
+
+The [`fcm_image_uploader.py`](05_Host_PC/fcm_image_uploader.py) tool provides a graphical interface (Tkinter) that can:
+- Open an image, crop it to a square, and convert it to grayscale using the hardware Luma standard.
+- Resize the image to the standard 450×450 pixels.
+- Export the image as a `.mem` file and upload it to SDRAM through Quartus System Console.
+- Run the FCM reference algorithm (the `precision` profile) directly on the PC using the **Reference** button, allowing users to compare its results with the board's 7-segment LED display.
+
+## Questa Simulation
+
+The repository does not include wrapper scripts. Run `vsim` directly and **set the current working directory to the Quartus project directory**, since testbench vector paths are relative to it (`FCM_DEFAULT_VECTOR_DIR = "../../03_Verification/vectors/precision"` in [`fcm_vector_pkg.sv`](03_Verification/common/fcm_vector_pkg.sv)):
+
+| Level | Working Directory | Testbench Top |
+| --- | --- | --- |
+| IP | `02_FCM_IP/quartus/` | `tb_fcm_divider`, `tb_fcm_member_uvm`, `tb_fcm_core_uvm` |
+| SoC | `04_SoC_Intergration/de10_lite_fcm_sdram/` | `tb_fcm_stream_pipeline_uvm`, `tb_fcm_system` |
+
+Select a different vector set with the plusarg `+FCM_VECTORS=<dir>`. For source and test lists at each level, see [`03_Verification/regression/testlists/`](03_Verification/regression/testlists/).
+
+## Environment Requirements
+
+- **Quartus Prime Lite**: Version 25.1std (`C:\altera_lite\25.1std`).
+- **Questa Intel FPGA Starter Edition**: Version 2025.2 (`C:\altera\25.1std\questa_fse`), with UVM 1.2 support.
+- **Python**: Version 3.10 (a separate virtual environment is recommended; dependencies: `numpy`, `pillow`, `pytest`).
+- **Target hardware**: Terasic DE10-Lite (Intel MAX 10 FPGA `10M50DAF484C7G`).
+# FPGA.FCM_system
